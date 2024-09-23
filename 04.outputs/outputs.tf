@@ -8,5 +8,11 @@ output "private_ip" {
   sensitive   = true
   description = "This is the private IP of Instance created"
 }
+# use output.instances_info
+
+output "instances_info" {
+    value = aws_instance.terraform
+}
+
 
 
