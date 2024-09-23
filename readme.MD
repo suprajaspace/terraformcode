@@ -208,6 +208,7 @@ output "private_ip" {
 Outputs:
 
 private_ip = <sensitive>
+
 public_ip = "54.167.4.127"
  
 ### loops
@@ -216,21 +217,26 @@ public_ip = "54.167.4.127"
 2. for-each loop
 
 count based loop is used to create many instances
+
 count = 3
 
 count.index is special variable used to pass instance names.
-
+```
 variable "instance_names"{
     type  =list(string)
     default = ["mysql", "backend", "frontend"]
 }
+```
 
 ### Functions
  Terraform has no custom functions, we must use inbuilt function
+
  for reference : https://developer.hashicorp.com/terraform/language/functions
  
  `terraform console`
+
  it is used to move terraform console
+
 functions ex:
 ```
  > max(5, 12, 9)
@@ -248,13 +254,18 @@ tolist([
 ```
 
 length function used to find of list
+
 count = 3 
+
 for many instances can use lenght function.
+
 use case:
+
 count = length(var.instance_names)
 
 ### Count
 count = length(var.instance_names)
+
 count = 3
 
 merge function is to merge to lists
@@ -321,21 +332,33 @@ resource "aws_route53_record" "expense" {
 
 ```
 *count:  as per number of instances required
+
 *zone id: zone id of route 53hosted zone 
+
 >>AWS>Route 53>hosted zone>hosted zone name>hosted zone details>hosted zone id
+
 *name : name of Record Name
+
  name    = "${var.instance_names[count.index]}.${var.domain_name}"
  
  here it is constructing a name by concatenating two variables: instance_names and domain_name. 
+
 1. ${} Syntax (Interpolation):
+
 The ${} syntax in Terraform is called interpolation. It allows you to insert or reference variables, expressions, and functions dynamically within strings.
+
 2. var.instance_names:
+
 This refers to a variable named instance_names. This is a list (or array) of names that are defined elsewhere in the Terraform configuration (likely in a variables.tf or passed during runtime)
  
 *type : Type of record
+
 *TTL : time to limit 
+
 *records : Value of the record (ip address)
+
  records = [aws_instance.expense[count.index].private_ip]
+
 Retrieve the private IP address of the count.index-th instance of the aws_instance.expense resource.
 
 allow_overwrite : permission to overwrite
