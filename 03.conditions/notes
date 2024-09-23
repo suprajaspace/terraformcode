@@ -1,0 +1,4 @@
+conditions topic:
+use case 1: based on environment instance type will be created
+
+ Ex: instance_type = var.environment =="prod" ? "t3.small" : "t3.micro"
