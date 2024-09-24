@@ -1,5 +1,7 @@
 ### data-sources
 
+data sources  --> instead of getting args manually, can query existing information
+
 for reference: https://developer.hashicorp.com/terraform/language/data-sources
 
 here ami id will change whenever the update new version of AMI.
@@ -44,3 +46,9 @@ output "ami_id" {
 }
 ```
 here for outputs value can use data."resource name"."name of resource"
+
+
+
+
+
+
