@@ -1,4 +1,3 @@
-
 resource "aws_instance" "terraform" {
   ami                    = data.aws_ami.devops.id
   instance_type          = "t3.micro"
@@ -7,7 +6,6 @@ resource "aws_instance" "terraform" {
     Name = "data-source"
   }
 }
-
 
 resource "aws_security_group" "allow_ssh_terraform" {
   name        = "allow_sshh" # allow_ssh is already there in my account
