@@ -1,4 +1,4 @@
-## EC2 Instance creation
+### EC2 Instance creation
 
 ### provider.tf 
 
@@ -182,15 +182,19 @@ variables proirity:
 
 conditions concept
 
+expression ? "run this if true" : "run this if false"
+
 use case 1: based on environment instance type will be created
 
  Ex:
   
  ec2.tf:
  
- instance_type = var.environment =="prod" ? "t3.small" : "t3.micro"
+ `instance_type = var.environment =="prod" ? "t3.small" : "t3.micro" `
 
 ### outputs
+
+for reference: https://developer.hashicorp.com/terraform/language/values/outputs
 
 every resource exports some values, we can take them and create other resources.
 
@@ -213,6 +217,10 @@ private_ip = <sensitive>
 
 public_ip = "54.167.4.127"
  
+here "aws_instance.terraform " is the (resource of instance .name of instance)
+
+sensitive true means not to display in commandline.
+
 ### loops
 
 1. count based loop
@@ -399,23 +407,23 @@ so using this datasource code to fetch AMI ID from specific aws AMI.
 ```
 data "aws_ami" "devops" {
 
-	most_recent      = true
-	owners = ["973714476881"]
-	
-	filter {
-		name   = "name"
-		values = ["RHEL-9-DevOps-Practice"]
-	}
-	
-	filter {
-		name   = "root-device-type"
-		values = ["ebs"]
-	}
+  most_recent = true
+  owners      = ["973714476881"]
 
-    filter {
-        name   = "virtualization-type"
-        values = ["hvm"]
-    }
+  filter {
+    name   = "name"
+    values = ["RHEL-9-DevOps-Practice"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
 }
 ```
 aws > EC2> AMIS> search> devops-practice> RHEL-9-DevOps-Practice > AMI deails:
@@ -579,11 +587,153 @@ if frontend record should be public IP or else record should be private IP
  ```
 
 
-# dynamic loops
+### dynamic loops
 
 this is also one loops concept
 
-use case: where port values not stable, changes
+for ref: https://developer.hashicorp.com/terraform/language/expressions/dynamic-blocks
+
+use case: where port values not stable, dynamically changes in projects. we have to give port no's, instead of using repeat ingress block,using this dynamic block.
+
+```
+  # terraform will give us a variable with block name
+  dynamic "ingress" {
+    for_each = var.ingress_rules
+    content {
+      from_port   = ingress.value["from_port"]
+      to_port     = ingress.value["to_port"]
+      protocol    = ingress.value["protocol"]
+      cidr_blocks = ingress.value.cidr_blocks
+    }
+  }
+  ```
+### provisioners
+
+for reference: https://developer.hashicorp.com/terraform/language/resources/provisioners/syntax
+
+After instance created, if any changes needed in instances can use provisioners.
+
+provisioners are used to take some actions locally or remotely..
+
+local --> where terraform executed is local...my laptop
+
+remote --> inside the servers you created..inside the servers of backend, frontend, mysql. etc.
+
+1. local-exec
+2. remote-exec
+
+remote-exec --> execute commands inside remote server
+
+using this provisioners integrating terraform and configuration management(ansible).
+
+```
+provisioner "local-exec" {
+    # command = "echo ${aws_instance.terraform.private_ip} > public_ip.txt"
+    command = "echo ${self.private_ip} > public_ip.txt"
+  }
+  connection {
+    type     = "ssh"
+    user     = "ec2-user"
+    password = "DevOps321"
+    host     = self.public_ip
+  }
+  # provisioners will excute at the time of execution
+  provisioner "remote-exec" {
+    inline = [
+      "sudo dnf install ansible -y",
+      "sudo dnf install nginx -y",
+      "sudo systemctl start nginx",
+
+    ]
+  }
+  provisioner "remote-exec" {
+    when = destroy
+    inline = [
+      "sudo systemctl stop nginx",
+    ]
+  }
+
+  ```
+here "self" is used to reference to current resource.
+
+self.private_ip --> private Ip of current resource.
+
+`command = "echo ${self.private_ip} > public_ip.txt" `
+the private IP address of an AWS instance is saved to a local 
+
+```
+connection {
+    type     = "ssh"
+    user     = "ec2-user"
+    password = "DevOps321"
+    host     = self.public_ip
+  }
+```
+
+AWS instance is created, the remote-exec provisioner connects to it via SSH and runs commands to install ansible, nginx, and start nginx.
+
+for destroy the instance first stop nginx then destroy instances.
+
+```
+  provisioner "remote-exec" {
+    inline = [
+      "sudo dnf install ansible -y",
+      "sudo dnf install nginx -y",
+      "sudo systemctl start nginx",
+
+    ]
+  }
+  provisioner "remote-exec" {
+    when = destroy
+    inline = [
+      "sudo systemctl stop nginx",
+    ]
+  }
+
+  ```
+
+### Terraform Commands
+
+1. terraform init
+Initializes the working directory containing the Terraform configuration files. It downloads necessary provider plugins and sets up the backend configuration.
+
+`terraform init`
+
+2. terraform plan
+Generates an execution plan showing the changes Terraform will apply to the infrastructure. It does not make any changes but provides insight into what actions will be taken.
+
+`terraform plan`
+
+3. terraform apply
+Applies the changes required to achieve the desired state of the configuration. If no saved plan is provided, Terraform will create a new plan and apply it.
+
+`terraform apply`
+
+The terraform apply -auto-approve command is used to apply the Terraform execution plan without requiring manual confirmation. Normally, after running terraform apply, Terraform prompts the user to type yes to confirm the changes before proceeding. The -auto-approve flag bypasses this confirmation step, allowing Terraform to apply the plan automatically.
+
+`terraform apply -auto-approve` 
+
+
+4. terraform destroy
+Destroys all infrastructure resources defined in the configuration. This is useful when you need to tear down environments.
+
+`terraform destroy`
+
+The terraform destroy -auto-approve command is used to destroy or tear down all infrastructure resources managed by Terraform without requiring manual confirmation. Typically, when you run terraform destroy, Terraform prompts for confirmation by asking the user to type yes. The -auto-approve flag bypasses this prompt, allowing Terraform to destroy the resources automatically.
+
+`terraform destroy -auto-approve`
+
+6. terraform fmt
+Formats your Terraform configuration files to follow consistent style conventions. It makes the configuration more readable and adheres to a standardized format.
+
+`terraform fmt`
+
+
+
+
+
+
+
 
 
 
