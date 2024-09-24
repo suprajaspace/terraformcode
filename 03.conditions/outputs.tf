@@ -8,5 +8,3 @@ output "private_ip" {
   sensitive   = false
   description = "This is the private IP of Instance created"
 }
-
-
