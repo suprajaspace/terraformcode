@@ -698,7 +698,9 @@ for destroy the instance first stop nginx then destroy instances.
 
 Initializes the working directory containing the Terraform configuration files. It downloads necessary provider plugins and sets up the backend configuration.
 
-```terraform init```
+```
+terraform init
+```
 
 2. terraform plan
 
